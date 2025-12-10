@@ -413,10 +413,11 @@
         let activePatientId = null;
         let activeSoapIndex = -1; 
 
+        // UPDATED VITAL SIGN RANGES (TEMPERATURE IN CELSIUS)
         const ranges = {
-            'Anjing': { t:[38.0,39.2], hr:[60,140], rr:[10,30] },
-            'Kucing': { t:[37.8,39.7], hr:[140,220], rr:[16,40] },
-            'Kelinci': { t:[38.0,40.0], hr:[150,330], rr:[30,60] },
+            'Anjing': { t:[38.3,39.2], hr:[60,140], rr:[10,30] },  // Updated Temp
+            'Kucing': { t:[38.1,39.2], hr:[140,220], rr:[16,40] }, // Updated Temp
+            'Kelinci': { t:[38.5,40.0], hr:[150,330], rr:[30,60] }, // Updated Temp
             'Marmut': { t:[37.2,39.5], hr:[230,320], rr:[40,100] },
             'Burung': { t:[40.2,41.5], hr:[150,700], rr:[15,80] }
         };
