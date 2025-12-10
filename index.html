@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RSH Cemara Management System v2</title>
+    <title>RSH Cemara Management System (Fixed)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -68,7 +68,7 @@
         <div class="max-w-7xl mx-auto px-4 h-full flex justify-between items-center">
             <div class="flex items-center gap-3 cursor-pointer" onclick="showDashboard()">
                 <div class="h-9 w-9 bg-cemara-700 rounded text-white flex items-center justify-center"><i class="fa-solid fa-hospital"></i></div>
-                <div><h1 class="font-bold text-lg text-cemara-900 leading-tight">RSH CEMARA</h1><p class="text-[10px] text-gray-500 font-medium">MANAGEMENT SYSTEM v2.0</p></div>
+                <div><h1 class="font-bold text-lg text-cemara-900 leading-tight">RSH CEMARA</h1><p class="text-[10px] text-gray-500 font-medium">MANAGEMENT SYSTEM v2.1 (Fixed)</p></div>
             </div>
             <div class="flex items-center gap-4">
                 <button onclick="showMasterData()" class="text-sm font-bold text-gray-600 hover:text-cemara-700 mr-4"><i class="fa-solid fa-tags mr-1"></i> Master Harga</button>
@@ -100,7 +100,6 @@
                     </button>
                     <div id="form-reg-container" class="hidden p-6 bg-white">
                         <form onsubmit="registerPatient(event)">
-                            <!-- Form content same as before -->
                             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                                 <div class="space-y-3">
                                     <h4 class="font-bold text-gray-500 border-b pb-2 text-sm uppercase">A. Data Pemilik</h4>
@@ -230,7 +229,7 @@
                                 <div><span class="text-xs text-gray-500">Usia:</span> <span id="dispPetAge">-</span></div>
                                 <div class="col-span-2 mt-1">
                                     <span class="text-xs text-gray-500">Berat:</span> <span id="dispPetWeight" class="font-bold">-</span> | 
-                                    <span class="text-xs text-gray-500">Riwayat Medis:</span> <span id="dispPetVaccine" class="font-medium">-</span>
+                                    <span class="text-xs text-gray-500">Riwayat:</span> <span id="dispPetVaccine" class="font-medium">-</span>
                                 </div>
                             </div>
                         </div>
@@ -264,7 +263,7 @@
                                     <span class="text-[10px] text-gray-400">Validasi Spesies: <span id="valSpecies" class="font-bold text-cemara-700">-</span></span>
                                 </div>
                                 
-                                <!-- VITAL SIGN INPUTS DENGAN VALIDATOR -->
+                                <!-- VITAL SIGN INPUTS DENGAN ID YANG SESUAI DENGAN JS -->
                                 <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
                                     <div>
                                         <label class="text-[10px] font-bold text-gray-500 uppercase">Suhu (°C)</label>
@@ -369,7 +368,6 @@
                                 </select>
                                 <select id="billItemSelect" class="border p-2 rounded text-sm flex-grow focus:outline-none focus:border-cemara-500"></select>
                                 <input type="number" id="billQty" value="1" class="border p-2 rounded text-sm w-16 text-center focus:outline-none focus:border-cemara-500" placeholder="Qty">
-                                <!-- PERBAIKAN: Mengganti bg-cemara-600 menjadi bg-cemara-500 agar tombol terlihat -->
                                 <button onclick="addToBill()" class="bg-cemara-500 hover:bg-cemara-700 text-white px-4 rounded font-bold text-sm transition-colors shadow-sm"><i class="fa-solid fa-plus"></i></button>
                             </div>
                         </div>
@@ -398,7 +396,7 @@
     <!-- LOGIC -->
     <script>
         // --- 1. DATA STATE ---
-        let db = JSON.parse(localStorage.getItem('rsh_db_v5')) || [];
+        let db = JSON.parse(localStorage.getItem('rsh_db_v6')) || []; // Changed to v6 to clear potential bad data
         let masterData = JSON.parse(localStorage.getItem('rsh_master_prices')) || {
             jasa: [{name:'Konsultasi',price:100000}, {name:'Kastrasi Kucing Jantan',price:350000}, {name:'Steril Kucing Betina',price:600000}],
             obat: [{name:'Inj. Ondansetron',price:25000}, {name:'Infus RL 500ml',price:35000}, {name:'Antibiotik (Amox)',price:15000}],
@@ -407,7 +405,15 @@
         };
         let currentUser = "";
         let activePatientId = null;
-        let activeSoapIndex = -1; // -1 means new/latest
+        let activeSoapIndex = -1; 
+
+        const ranges = {
+            'Anjing': { t:[38.0,39.2], hr:[60,140], rr:[10,30] },
+            'Kucing': { t:[37.8,39.7], hr:[140,220], rr:[16,40] },
+            'Kelinci': { t:[38.0,40.0], hr:[150,330], rr:[30,60] },
+            'Marmut': { t:[37.2,39.5], hr:[230,320], rr:[40,100] },
+            'Burung': { t:[40.2,41.5], hr:[150,700], rr:[15,80] }
+        };
 
         // --- 2. AUTH & INIT ---
         function handleLogin(e) {
@@ -418,7 +424,7 @@
             renderPatientTable();
         }
         function logout() { location.reload(); }
-        function saveDB() { localStorage.setItem('rsh_db_v5', JSON.stringify(db)); }
+        function saveDB() { localStorage.setItem('rsh_db_v6', JSON.stringify(db)); }
         function saveMaster() { localStorage.setItem('rsh_master_prices', JSON.stringify(masterData)); }
 
         // --- 3. MASTER DATA LOGIC ---
@@ -475,9 +481,9 @@
                     vaccine: document.getElementById('regVaccine').value,
                     deworm: document.getElementById('regDeworm').value
                 },
-                soapHistory: [], // Array of {date, s, o, a, p, labs: []}
+                soapHistory: [],
                 maor: [],
-                billing: [] // Array of {category, name, price, qty}
+                billing: []
             };
             // Create initial SOAP entry
             newP.soapHistory.push({
@@ -505,44 +511,53 @@
             renderPatientTable();
         }
         function openMedical(id) {
-            activePatientId = id;
-            const p = db.find(x => x.id === id);
-            
-            // Render Header & Identity (Existing logic)
-            document.getElementById('headName').innerText = p.pet.name;
-            document.getElementById('headSpecies').innerText = p.pet.species;
-            document.getElementById('headRM').innerText = p.rm;
-            document.getElementById('headOwner').innerText = p.owner.name;
-            document.getElementById('patientStatusSelect').value = p.status;
-            
-            // Full Identity Card
-            document.getElementById('dispOwnerName').innerText = p.owner.name;
-            document.getElementById('dispOwnerContact').innerText = p.owner.phone;
-            document.getElementById('dispOwnerAddress').innerText = p.owner.address;
-            document.getElementById('dispPetBreed').innerText = p.pet.breed;
-            document.getElementById('dispPetColor').innerText = p.pet.color;
-            document.getElementById('dispPetSex').innerText = p.pet.sex;
-            document.getElementById('dispPetAge').innerText = p.pet.age;
-            document.getElementById('dispPetWeight').innerText = p.pet.weight + " kg";
-            // FIXED: Added deworming info
-            document.getElementById('dispPetVaccine').innerText = `Vaksin: ${p.pet.vaccine || '-'} | Cacing: ${p.pet.deworm || '-'}`;
+            try {
+                activePatientId = id;
+                const p = db.find(x => x.id === id);
+                if(!p) { alert("Data Pasien Corrupt/Hilang"); return; }
+                
+                // Render Header & Identity
+                document.getElementById('headName').innerText = p.pet.name;
+                document.getElementById('headSpecies').innerText = p.pet.species;
+                document.getElementById('headRM').innerText = p.rm;
+                document.getElementById('headOwner').innerText = p.owner.name;
+                document.getElementById('patientStatusSelect').value = p.status;
+                document.getElementById('valSpecies').innerText = p.pet.species;
+                
+                // Full Identity Card
+                document.getElementById('dispOwnerName').innerText = p.owner.name;
+                document.getElementById('dispOwnerContact').innerText = p.owner.phone;
+                document.getElementById('dispOwnerAddress').innerText = p.owner.address;
+                document.getElementById('dispPetBreed').innerText = p.pet.breed;
+                document.getElementById('dispPetColor').innerText = p.pet.color;
+                document.getElementById('dispPetSex').innerText = p.pet.sex;
+                document.getElementById('dispPetAge').innerText = p.pet.age;
+                document.getElementById('dispPetWeight').innerText = p.pet.weight + " kg";
+                document.getElementById('dispPetVaccine').innerText = `Vaksin: ${p.pet.vaccine || '-'} | Cacing: ${p.pet.deworm || '-'}`;
 
-            // Render Lab Checklist from Master Data
-            const labDiv = document.getElementById('labChecklist');
-            labDiv.innerHTML = '';
-            masterData.lab.forEach(l => {
-                labDiv.innerHTML += `<label class="flex items-center gap-2"><input type="checkbox" value="${l.name}" class="lab-checkbox"> ${l.name}</label>`;
-            });
+                // Render Lab Checklist from Master Data
+                const labDiv = document.getElementById('labChecklist');
+                labDiv.innerHTML = '';
+                masterData.lab.forEach(l => {
+                    labDiv.innerHTML += `<label class="flex items-center gap-2"><input type="checkbox" value="${l.name}" class="lab-checkbox"> ${l.name}</label>`;
+                });
 
-            // Populate SOAP History Dropdown
-            updateSoapHistoryDropdown();
-            
-            // Load Latest SOAP
-            loadSoapByIndex(p.soapHistory.length - 1);
+                // Check for legacy data compatibility
+                if (!p.soapHistory) p.soapHistory = [];
+                if (p.soapHistory.length === 0) {
+                    p.soapHistory.push({ date: new Date().toISOString().split('T')[0], s: "", o: {}, a: {}, p: "", labs: [] });
+                }
 
-            document.getElementById('view-dashboard').classList.add('hidden');
-            document.getElementById('view-medical').classList.remove('hidden');
-            switchTab('pomr');
+                updateSoapHistoryDropdown();
+                loadSoapByIndex(p.soapHistory.length - 1);
+
+                document.getElementById('view-dashboard').classList.add('hidden');
+                document.getElementById('view-medical').classList.remove('hidden');
+                switchTab('pomr');
+            } catch (e) {
+                console.error(e);
+                alert("Gagal membuka data: " + e.message);
+            }
         }
 
         // --- 6. SOAP & MULTI-DATE LOGIC ---
@@ -569,16 +584,16 @@
             const p = db.find(x => x.id === activePatientId);
             const soap = p.soapHistory[idx];
 
-            document.getElementById('soapDate').value = soap.date;
-            document.getElementById('soapS').value = soap.s;
-            document.getElementById('inTemp').value = soap.o.t;
-            document.getElementById('inHR').value = soap.o.hr;
-            document.getElementById('inRR').value = soap.o.rr;
-            document.getElementById('inCRT').value = soap.o.crt;
-            document.getElementById('inMucosa').value = soap.o.mm;
-            document.getElementById('soapA').value = soap.a.dx;
-            document.getElementById('soapProg').value = soap.a.prog;
-            document.getElementById('soapP').value = soap.p;
+            document.getElementById('soapDate').value = soap.date || "";
+            document.getElementById('soapS').value = soap.s || "";
+            document.getElementById('inTemp').value = soap.o.t || "";
+            document.getElementById('inHR').value = soap.o.hr || "";
+            document.getElementById('inRR').value = soap.o.rr || "";
+            document.getElementById('inCRT').value = soap.o.crt || "";
+            document.getElementById('inMucosa').value = soap.o.mm || "Pink";
+            document.getElementById('soapA').value = soap.a.dx || "";
+            document.getElementById('soapProg').value = soap.a.prog || "Fausta";
+            document.getElementById('soapP').value = soap.p || "";
 
             // Set checkboxes
             document.querySelectorAll('.lab-checkbox').forEach(cb => {
@@ -593,7 +608,6 @@
             const p = db.find(x => x.id === activePatientId);
             const today = new Date().toISOString().split('T')[0];
             
-            // Check if today exists
             const existingIdx = p.soapHistory.findIndex(h => h.date === today);
             if(existingIdx !== -1) {
                 alert("Pemeriksaan untuk tanggal hari ini sudah ada.");
@@ -602,19 +616,165 @@
                 return;
             }
 
-            // Create new
             p.soapHistory.push({
                 date: today,
-                s: "", o: {t:"", hr:"", rr:"", crt:"", mm:""}, a: {dx:"", prog:"Fausta"}, p: "", labs: []
+                s: "", o: {t:"", hr:"", rr:"", crt:"", mm:"Pink"}, a: {dx:"", prog:"Fausta"}, p: "", labs: []
             });
             saveDB();
             updateSoapHistoryDropdown();
             loadSoapByIndex(p.soapHistory.length - 1);
         }
 
-        // ... existing saveSoapData ...
+        function saveSoapData() {
+            const p = db.find(x => x.id === activePatientId);
+            const soap = p.soapHistory[activeSoapIndex];
+            
+            soap.date = document.getElementById('soapDate').value;
+            soap.s = document.getElementById('soapS').value;
+            soap.o.t = document.getElementById('inTemp').value;
+            soap.o.hr = document.getElementById('inHR').value;
+            soap.o.rr = document.getElementById('inRR').value;
+            soap.o.crt = document.getElementById('inCRT').value;
+            soap.o.mm = document.getElementById('inMucosa').value;
+            soap.a.dx = document.getElementById('soapA').value;
+            soap.a.prog = document.getElementById('soapProg').value;
+            soap.p = document.getElementById('soapP').value;
 
-        // ... existing billing functions ...
+            const selectedLabs = [];
+            document.querySelectorAll('.lab-checkbox:checked').forEach(cb => {
+                selectedLabs.push(cb.value);
+                addLabToBilling(cb.value);
+            });
+            soap.labs = selectedLabs;
+
+            saveDB();
+            alert("Data SOAP Tersimpan!");
+        }
+
+        // --- 7. BILLING LOGIC ---
+        function addLabToBilling(labName) {
+            const p = db.find(x => x.id === activePatientId);
+            const exists = p.billing.some(b => b.name === labName); 
+            if(!exists) {
+                const item = masterData.lab.find(l => l.name === labName);
+                if(item) {
+                    p.billing.push({category: 'lab', name: item.name, price: item.price, qty: 1});
+                    saveDB();
+                }
+            }
+        }
+
+        function updateBillItemSelect() {
+            const cat = document.getElementById('billCategory').value;
+            const select = document.getElementById('billItemSelect');
+            select.innerHTML = '';
+            masterData[cat].forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.name;
+                opt.text = `${item.name} - Rp ${item.price.toLocaleString()}`;
+                select.appendChild(opt);
+            });
+        }
+
+        function addToBill() {
+            const p = db.find(x => x.id === activePatientId);
+            const cat = document.getElementById('billCategory').value;
+            const name = document.getElementById('billItemSelect').value;
+            const qty = parseInt(document.getElementById('billQty').value);
+            
+            const itemObj = masterData[cat].find(i => i.name === name);
+            
+            if(itemObj) {
+                p.billing.push({category: cat, name: name, price: itemObj.price, qty: qty});
+                saveDB();
+                renderBilling();
+            }
+        }
+
+        function renderBilling() {
+            const p = db.find(x => x.id === activePatientId);
+            const tbody = document.getElementById('billingBody');
+            tbody.innerHTML = '';
+            let total = 0;
+
+            p.billing.forEach((item, idx) => {
+                const subtotal = item.price * item.qty;
+                total += subtotal;
+                tbody.innerHTML += `
+                    <tr class="border-b">
+                        <td class="p-3 uppercase text-xs font-bold text-gray-500">${item.category}</td>
+                        <td class="p-3">${item.name}</td>
+                        <td class="p-3 text-center">${item.qty}</td>
+                        <td class="p-3 text-right">Rp ${item.price.toLocaleString()}</td>
+                        <td class="p-3 text-right font-bold">Rp ${subtotal.toLocaleString()}</td>
+                        <td class="p-3 text-center"><button onclick="delBillItem(${idx})" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td>
+                    </tr>
+                `;
+            });
+            document.getElementById('billTotal').innerText = "Rp " + total.toLocaleString();
+        }
+
+        function delBillItem(idx) {
+            const p = db.find(x => x.id === activePatientId);
+            p.billing.splice(idx, 1);
+            saveDB(); renderBilling();
+        }
+
+        function finalizeBill() {
+            if(confirm("Selesaikan tagihan dan ubah status pasien menjadi 'Pulang'?")) {
+                const p = db.find(x => x.id === activePatientId);
+                p.status = 'Telah Dipulangkan';
+                document.getElementById('patientStatusSelect').value = 'Telah Dipulangkan';
+                saveDB();
+                alert("Status Pasien Updated.");
+            }
+        }
+
+        // --- 8. MAOR SPREADSHEET ---
+        function renderMaor() {
+            const p = db.find(x => x.id === activePatientId);
+            const tbody = document.getElementById('maorBody');
+            tbody.innerHTML = "";
+            p.maor.forEach((row, idx) => {
+                const locked = row.verifiedBy !== null;
+                const ro = locked ? "sheet-readonly" : "sheet-input";
+                let action = locked ? `<div class="bg-green-100 text-green-800 text-xs p-2 rounded text-center font-bold">${row.verifiedBy}</div>` : `<button onclick="verifyRow(${idx})" class="w-full bg-blue-600 text-white text-xs py-1 rounded">Verifikasi</button>`;
+                let del = locked ? "" : `<button onclick="delRow(${idx})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>`;
+                
+                tbody.innerHTML += `<tr>
+                    <td><input type="time" class="${ro}" value="${row.time}" onchange="updMaor(${idx},'time',this.value)" ${locked?'disabled':''}></td>
+                    <td><input type="text" class="${ro}" value="${row.drug}" onchange="updMaor(${idx},'drug',this.value)" ${locked?'disabled':''}></td>
+                    <td><input type="text" class="${ro}" value="${row.dose}" onchange="updMaor(${idx},'dose',this.value)" ${locked?'disabled':''}></td>
+                    <td><input type="text" class="${ro}" value="${row.route}" onchange="updMaor(${idx},'route',this.value)" ${locked?'disabled':''}></td>
+                    <td><input type="text" class="${ro}" value="${row.officer}" onchange="updMaor(${idx},'officer',this.value)" ${locked?'disabled':''}></td>
+                    <td class="p-1">${action}</td><td class="p-1 text-center">${del}</td>
+                </tr>`;
+            });
+        }
+        function addMaorRow() {
+            const p = db.find(x => x.id === activePatientId);
+            p.maor.push({time: new Date().toTimeString().substr(0,5), drug:'', dose:'', route:'', officer:'', verifiedBy: null});
+            saveDB(); renderMaor();
+        }
+        function updMaor(idx, key, val) { db.find(x=>x.id===activePatientId).maor[idx][key] = val; saveDB(); }
+        function verifyRow(idx) {
+            if(!currentUser) return alert("Login dulu!");
+            const p = db.find(x => x.id === activePatientId);
+            p.maor[idx].verifiedBy = currentUser;
+            saveDB(); renderMaor();
+        }
+        function delRow(idx) { db.find(x=>x.id===activePatientId).maor.splice(idx,1); saveDB(); renderMaor(); }
+        function sendOrderToMAOR() {
+            const p = db.find(x => x.id === activePatientId);
+            p.maor.push({
+                time: new Date().toTimeString().substr(0,5),
+                drug: document.getElementById('orderDrug').value,
+                dose: document.getElementById('orderDose').value,
+                route: document.getElementById('orderRoute').value,
+                officer: "", verifiedBy: null
+            });
+            saveDB(); renderMaor(); alert("Terkirim ke MAOR");
+        }
 
         // --- 9. TAB & VALIDATION HELPERS ---
         function switchTab(t) {
@@ -628,15 +788,13 @@
             if(t === 'billing') { updateBillItemSelect(); renderBilling(); }
         }
 
-        // FUNGSI VALIDATOR VITAL SIGN (RESTORED)
         function validate(type) {
             const p = db.find(x => x.id === activePatientId);
             if(!p) return;
-            
             const species = p.pet.species || 'Kucing';
             const ref = ranges[species] || ranges['Kucing'];
             
-            // Mapping ID Element
+            // Mapping ID Element Correctly to HTML
             let elId = 'inTemp', msgId = 'msgTemp';
             if(type === 'hr') { elId = 'inHR'; msgId = 'msgHR'; }
             if(type === 'rr') { elId = 'inRR'; msgId = 'msgRR'; }
@@ -645,11 +803,14 @@
 
             const el = document.getElementById(elId);
             const msgEl = document.getElementById(msgId);
-            const val = el.value;
+            
+            // Safety check
+            if (!el || !msgEl) return;
 
+            const val = el.value;
+            
             // Reset Styles
-            el.classList.remove('border-red-500', 'bg-red-50', 'text-red-700', 'border-green-500', 'bg-green-50', 'text-green-700', 'border-gray-300');
-            el.classList.add('border-gray-300'); // default
+            el.className = "w-full border p-2 rounded text-center text-sm font-bold transition-colors border-gray-300";
             msgEl.innerHTML = "";
 
             if(!val) return;
@@ -662,7 +823,6 @@
             } else if (type === 'mucosa') {
                 if(val !== 'Pink') { isAbnormal = true; normalText = "Harus Pink"; }
             } else {
-                // Numeric
                 let r;
                 if(type === 'temp') r = ref.t;
                 if(type === 'hr') r = ref.hr;
