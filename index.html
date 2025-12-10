@@ -68,7 +68,7 @@
         <div class="max-w-7xl mx-auto px-4 h-full flex justify-between items-center">
             <div class="flex items-center gap-3 cursor-pointer" onclick="showDashboard()">
                 <div class="h-9 w-9 bg-cemara-700 rounded text-white flex items-center justify-center"><i class="fa-solid fa-hospital"></i></div>
-                <div><h1 class="font-bold text-lg text-cemara-900 leading-tight">RSH CEMARA</h1><p class="text-[10px] text-gray-500 font-medium">MANAGEMENT SYSTEM v2.1 (Fixed)</p></div>
+                <div><h1 class="font-bold text-lg text-cemara-900 leading-tight">RSH CEMARA</h1><p class="text-[10px] text-gray-500 font-medium">MANAGEMENT SYSTEM v2.2 (Added Findings)</p></div>
             </div>
             <div class="flex items-center gap-4">
                 <button onclick="showMasterData()" class="text-sm font-bold text-gray-600 hover:text-cemara-700 mr-4"><i class="fa-solid fa-tags mr-1"></i> Master Harga</button>
@@ -298,6 +298,12 @@
                                         <div id="msgMucosa" class="text-[9px] mt-1 h-3 leading-tight"></div>
                                     </div>
                                 </div>
+
+                                <!-- KOLOM TEMUAN KLINIS TAMBAHAN -->
+                                <div class="mb-4">
+                                    <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Temuan Klinis Lainnya</label>
+                                    <textarea id="soapOFindings" class="w-full border rounded p-2 text-sm" rows="2" placeholder="Catat temuan fisik lainnya (misal: bengkak, luka, rambut rontok, dll)..."></textarea>
+                                </div>
                                 
                                 <!-- PEMERIKSAAN PENUNJANG -->
                                 <div class="bg-purple-50 p-3 rounded border border-purple-100">
@@ -396,7 +402,7 @@
     <!-- LOGIC -->
     <script>
         // --- 1. DATA STATE ---
-        let db = JSON.parse(localStorage.getItem('rsh_db_v6')) || []; // Changed to v6 to clear potential bad data
+        let db = JSON.parse(localStorage.getItem('rsh_db_v7')) || []; // Updated key to v7
         let masterData = JSON.parse(localStorage.getItem('rsh_master_prices')) || {
             jasa: [{name:'Konsultasi',price:100000}, {name:'Kastrasi Kucing Jantan',price:350000}, {name:'Steril Kucing Betina',price:600000}],
             obat: [{name:'Inj. Ondansetron',price:25000}, {name:'Infus RL 500ml',price:35000}, {name:'Antibiotik (Amox)',price:15000}],
@@ -424,7 +430,7 @@
             renderPatientTable();
         }
         function logout() { location.reload(); }
-        function saveDB() { localStorage.setItem('rsh_db_v6', JSON.stringify(db)); }
+        function saveDB() { localStorage.setItem('rsh_db_v7', JSON.stringify(db)); }
         function saveMaster() { localStorage.setItem('rsh_master_prices', JSON.stringify(masterData)); }
 
         // --- 3. MASTER DATA LOGIC ---
@@ -485,10 +491,10 @@
                 maor: [],
                 billing: []
             };
-            // Create initial SOAP entry
+            // Create initial SOAP entry with empty findings
             newP.soapHistory.push({
                 date: new Date().toISOString().split('T')[0],
-                s: "", o: {t:"", hr:"", rr:"", crt:"", mm:"Pink"}, a: {dx:"", prog:"Fausta"}, p: "", labs: []
+                s: "", o: {t:"", hr:"", rr:"", crt:"", mm:"Pink", findings:""}, a: {dx:"", prog:"Fausta"}, p: "", labs: []
             });
             db.push(newP); saveDB();
             e.target.reset(); toggleRegForm(); openMedical(newP.id);
@@ -545,7 +551,7 @@
                 // Check for legacy data compatibility
                 if (!p.soapHistory) p.soapHistory = [];
                 if (p.soapHistory.length === 0) {
-                    p.soapHistory.push({ date: new Date().toISOString().split('T')[0], s: "", o: {}, a: {}, p: "", labs: [] });
+                    p.soapHistory.push({ date: new Date().toISOString().split('T')[0], s: "", o: {findings:""}, a: {}, p: "", labs: [] });
                 }
 
                 updateSoapHistoryDropdown();
@@ -591,6 +597,9 @@
             document.getElementById('inRR').value = soap.o.rr || "";
             document.getElementById('inCRT').value = soap.o.crt || "";
             document.getElementById('inMucosa').value = soap.o.mm || "Pink";
+            // Load findings field
+            document.getElementById('soapOFindings').value = soap.o.findings || "";
+            
             document.getElementById('soapA').value = soap.a.dx || "";
             document.getElementById('soapProg').value = soap.a.prog || "Fausta";
             document.getElementById('soapP').value = soap.p || "";
@@ -618,7 +627,7 @@
 
             p.soapHistory.push({
                 date: today,
-                s: "", o: {t:"", hr:"", rr:"", crt:"", mm:"Pink"}, a: {dx:"", prog:"Fausta"}, p: "", labs: []
+                s: "", o: {t:"", hr:"", rr:"", crt:"", mm:"Pink", findings:""}, a: {dx:"", prog:"Fausta"}, p: "", labs: []
             });
             saveDB();
             updateSoapHistoryDropdown();
@@ -636,6 +645,9 @@
             soap.o.rr = document.getElementById('inRR').value;
             soap.o.crt = document.getElementById('inCRT').value;
             soap.o.mm = document.getElementById('inMucosa').value;
+            // Save Findings
+            soap.o.findings = document.getElementById('soapOFindings').value;
+            
             soap.a.dx = document.getElementById('soapA').value;
             soap.a.prog = document.getElementById('soapProg').value;
             soap.p = document.getElementById('soapP').value;
