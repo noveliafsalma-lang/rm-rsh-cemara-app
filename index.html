@@ -165,9 +165,10 @@
                 <div class="bg-gray-50 p-4 rounded-lg border">
                     <h3 id="masterTitle" class="font-bold text-lg mb-3">Daftar Item</h3>
                     <div class="flex gap-2 mb-4">
-                        <input type="text" id="newItemName" placeholder="Nama Item Baru" class="border p-2 rounded flex-grow text-sm">
-                        <input type="number" id="newItemPrice" placeholder="Harga (Rp)" class="border p-2 rounded w-32 text-sm">
-                        <button onclick="addMasterItem()" class="bg-cemara-600 text-white px-4 rounded font-bold text-sm">Tambah</button>
+                        <input type="text" id="newItemName" placeholder="Nama Item Baru" class="border p-2 rounded flex-grow text-sm focus:outline-none focus:ring-2 focus:ring-cemara-500">
+                        <input type="number" id="newItemPrice" placeholder="Harga (Rp)" class="border p-2 rounded w-32 text-sm focus:outline-none focus:ring-2 focus:ring-cemara-500">
+                        <!-- PERBAIKAN: Mengganti bg-cemara-600 (tidak ada) menjadi bg-cemara-500 -->
+                        <button onclick="addMasterItem()" class="bg-cemara-500 hover:bg-cemara-700 text-white px-6 rounded-lg font-bold text-sm transition-colors shadow-sm">Tambah</button>
                     </div>
                     <table class="w-full text-left bg-white border rounded text-sm">
                         <thead class="bg-gray-100"><tr><th class="p-3 border">Nama Item</th><th class="p-3 border">Harga (Rp)</th><th class="p-3 border w-20">Aksi</th></tr></thead>
@@ -329,12 +330,13 @@
                         <div class="bg-gray-50 p-4 rounded-lg border mb-4">
                             <h4 class="font-bold text-sm mb-2">Tambah Item ke Tagihan</h4>
                             <div class="flex gap-2">
-                                <select id="billCategory" onchange="updateBillItemSelect()" class="border p-2 rounded text-sm w-32 font-bold">
+                                <select id="billCategory" onchange="updateBillItemSelect()" class="border p-2 rounded text-sm w-32 font-bold focus:outline-none focus:border-cemara-500">
                                     <option value="jasa">Jasa/Op</option><option value="obat">Obat</option><option value="lab">Lab</option><option value="bhp">BHP</option>
                                 </select>
-                                <select id="billItemSelect" class="border p-2 rounded text-sm flex-grow"></select>
-                                <input type="number" id="billQty" value="1" class="border p-2 rounded text-sm w-16 text-center" placeholder="Qty">
-                                <button onclick="addToBill()" class="bg-cemara-600 text-white px-4 rounded font-bold text-sm"><i class="fa-solid fa-plus"></i></button>
+                                <select id="billItemSelect" class="border p-2 rounded text-sm flex-grow focus:outline-none focus:border-cemara-500"></select>
+                                <input type="number" id="billQty" value="1" class="border p-2 rounded text-sm w-16 text-center focus:outline-none focus:border-cemara-500" placeholder="Qty">
+                                <!-- PERBAIKAN: Mengganti bg-cemara-600 menjadi bg-cemara-500 agar tombol terlihat -->
+                                <button onclick="addToBill()" class="bg-cemara-500 hover:bg-cemara-700 text-white px-4 rounded font-bold text-sm transition-colors shadow-sm"><i class="fa-solid fa-plus"></i></button>
                             </div>
                         </div>
 
